@@ -1,0 +1,21 @@
+<package>
+  <name>marble_virtual_comms</name>
+  <version>0.1.0</version>
+  <description>
+    Comms client for MARBLE in SubT Virtual Worlds
+  </description>
+  <author>Dan Riley</author>
+  <maintainer email="dan.riley@colorado.edu">Dan Riley</maintainer>
+  <license>MIT</license>
+  <url>https://github.com/dan-riley/marble_virtual_comms</url>
+  <url type="bugtracker">https://github.com/dan-riley/marble_virtual_comms/issues</url>
+  <url type="repository">https://github.com/dan-riley/marble_virtual_comms</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>subt_ign</build_depend>
+  <build_depend>subt_communication_broker</build_depend>
+  <build_depend>subt_msgs</build_depend>
+</package>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="vehicle" default="Base" />
+
+  <node pkg="marble_virtual_comms" type="marble_virtual_comms_node" name="marble_virtual_comms" output="screen">
+    <param name="vehicle" value="$(arg vehicle)" />
+  </node>
+</launch>
