@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
+  <!-- Name of the robot for namespace -->
   <arg name="vehicle" default="Base" />
+  <!-- Amount of time until messages expire and are no longer sent/requested -->
+  <arg name="timeout" default="3.0" />
+  <!-- Duration between checks for missing packets and memory cleanup -->
+  <arg name="timer" default="0.2" />
 
   <node pkg="marble_virtual_comms" type="marble_virtual_comms_node" name="marble_virtual_comms" output="screen">
     <param name="vehicle" value="$(arg vehicle)" />
+    <param name="timeout" value="$(arg timeout)" />
+    <param name="timer" value="$(arg timer)" />
   </node>
 </launch>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <!-- Agents to launch.  If set to false, make sure to clear out the name as well! -->
+  <arg name="useagent1" default="true" />
+  <arg name="agent1" default="Base" />
+  <arg name="useagent2" default="true" />
+  <arg name="agent2" default="X1" />
+  <arg name="useagent3" default="true" />
+  <arg name="agent3" default="X2" />
+  <arg name="useagent4" default="false" />
+  <arg name="agent4" default="" />
+  <arg name="useagent5" default="false" />
+  <arg name="agent5" default="" />
+  <arg name="useagent6" default="false" />
+  <arg name="agent6" default="" />
+
+  <group if="$(arg useagent1)" ns="$(arg agent1)">
+    <include file="$(find marble_virtual_comms)/launch/marble_virtual_comms.launch">
+      <arg name="vehicle" value="$(arg agent1)" />
+    </include>
+  </group>
+
+  <group if="$(arg useagent2)" ns="$(arg agent2)">
+    <include file="$(find marble_virtual_comms)/launch/marble_virtual_comms.launch">
+      <arg name="vehicle" value="$(arg agent2)" />
+    </include>
+  </group>
+
+  <group if="$(arg useagent3)" ns="$(arg agent3)">
+    <include file="$(find marble_virtual_comms)/launch/marble_virtual_comms.launch">
+      <arg name="vehicle" value="$(arg agent3)" />
+    </include>
+  </group>
+
+  <group if="$(arg useagent4)" ns="$(arg agent4)">
+    <include file="$(find marble_virtual_comms)/launch/marble_virtual_comms.launch">
+      <arg name="vehicle" value="$(arg agent4)" />
+    </include>
+  </group>
+
+  <group if="$(arg useagent5)" ns="$(arg agent5)">
+    <include file="$(find marble_virtual_comms)/launch/marble_virtual_comms.launch">
+      <arg name="vehicle" value="$(arg agent5)" />
+    </include>
+  </group>
+
+  <group if="$(arg useagent6)" ns="$(arg agent6)">
+    <include file="$(find marble_virtual_comms)/launch/marble_virtual_comms.launch">
+      <arg name="vehicle" value="$(arg agent6)" />
+    </include>
+  </group>
+
+  <include file="$(find marble_virtual_comms)/launch/create_peers.launch">
+    <arg name="agents" value="$(arg agent1) $(arg agent2) $(arg agent3) $(arg agent4) $(arg agent5) $(arg agent6)" />
+  </include>
+</launch>

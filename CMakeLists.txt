@@ -34,7 +34,7 @@ generate_messages()
 
 catkin_package()
 
-add_library(${PROJECT_NAME} src/MarbleVirtualComms.cpp)
+add_library(${PROJECT_NAME} src/MarbleVirtualComms.cpp src/MVCPeer.cpp)
 target_link_libraries(${PROJECT_NAME} ${LINK_LIBS})
 
 add_executable(marble_virtual_comms_node src/marble_virtual_comms_node.cpp)
