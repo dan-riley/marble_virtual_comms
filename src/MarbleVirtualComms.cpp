@@ -185,8 +185,10 @@ void MarbleVirtualComms::resendMissing(std::string data, std::string remote) {
 
   // Find the packets and send them again
   for (auto i = first_packet; i < first_packet + packet_total; ++i) {
-    std::string data = peerData->packets[i];
-    client->SendTo(data, remote);
+    if (i < peerData->packets.size()) {
+      std::string data = peerData->packets[i];
+      client->SendTo(data, remote);
+    }
   }
 }
 
