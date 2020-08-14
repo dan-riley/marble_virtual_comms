@@ -10,9 +10,11 @@
 #include "subt_communication_broker/subt_communication_client.h"
 #include "subt_ign/CommonTypes.hh"
 #include "subt_ign/protobuf/artifact.pb.h"
+#include "marble_artifact_detection_msgs/Artifact.h"
 #include "marble_multi_agent/AgentMsg.h"
 #include "marble_multi_agent/DMReqArray.h"
 #include "marble_multi_agent/DMRespArray.h"
+#include "marble_multi_agent/ArtifactScore.h"
 #include "marble_virtual_comms/CreatePeer.h"
 #include "MVCPeer.h"
 
@@ -32,6 +34,7 @@ public:
   virtual void maDataCallback(const marble_multi_agent::AgentMsgConstPtr& msg);
   virtual void dmReqCallback(const marble_multi_agent::DMReqArrayConstPtr& msg, std::string remote);
   virtual void dmRespCallback(const marble_multi_agent::DMRespArrayConstPtr& msg, std::string remote);
+  virtual void reportCallback(const marble_artifact_detection_msgs::ArtifactConstPtr& msg);
 
   std::string sendpre;
   std::string recvpre;
@@ -42,9 +45,10 @@ protected:
 
   // Message handling
   template<typename M>
-  void sendMsg(const M& msg, uint8_t msg_type, std::string remote);
-  void receiveMsg(std::string data, std::string remote);
-  void resendMissing(std::string data, std::string remote);
+  void sendMsg(const M& msg, uint8_t msg_type, const std::string& remote);
+  void receiveMsg(const std::string& data, const std::string& remote);
+  void receiveArtifactScore(const std::string& data);
+  void resendMissing(const std::string& data, const std::string& remote);
   void requestMissing(uint16_t seq, uint8_t msg_type, uint16_t last_packet, uint16_t packet_total, std::string name);
   // Republishers to local topics
   void publishStreamMAData(ros::serialization::IStream stream, ros::Publisher pub);
@@ -61,12 +65,16 @@ protected:
   ros::Timer missing_timer;
   ros::Timer neighbor_timer;
   ros::Timer artifact_timer;
+  ros::Publisher report_pub;
+  ros::Subscriber report_sub;
 
   std::string id;
   double timeout;
   double timer;
   std::unique_ptr<subt::CommsClient> client;
   std::map<std::string, MVCPeer> peers;
+  std::map<std::string, subt::msgs::Artifact> artifacts;
+  std::map<std::string, ros::Time> artifact_times;
 };
 }
 

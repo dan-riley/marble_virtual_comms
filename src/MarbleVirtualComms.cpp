@@ -34,6 +34,11 @@ MarbleVirtualComms::MarbleVirtualComms(const ros::NodeHandle private_nh_, const 
   MVCPeer peer = MVCPeer();
   peer.init("all", *this);
   peers.insert(std::make_pair("all", peer));
+
+  if (id == "Base") {
+    report_pub = private_nh.advertise<marble_multi_agent::ArtifactScore>("/Base/artifact_score", 100);
+    report_sub = private_nh.subscribe("/Base/artifact_report", 100, &MarbleVirtualComms::reportCallback, this);
+  }
 }
 
 MarbleVirtualComms::~MarbleVirtualComms() {
@@ -41,7 +46,7 @@ MarbleVirtualComms::~MarbleVirtualComms() {
 }
 
 template<typename M>
-void MarbleVirtualComms::sendMsg(const M& msg, uint8_t msg_type, std::string remote) {
+void MarbleVirtualComms::sendMsg(const M& msg, uint8_t msg_type, const std::string& remote) {
   // Receive data from the local agent, generate a string, and send to the remote peer
   uint32_t serial_size = ros::serialization::serializationLength(*msg);
   boost::shared_array<uint8_t> buffer(new uint8_t[serial_size]);
@@ -98,7 +103,7 @@ void MarbleVirtualComms::sendMsg(const M& msg, uint8_t msg_type, std::string rem
   }
 }
 
-void MarbleVirtualComms::receiveMsg(std::string data, std::string remote) {
+void MarbleVirtualComms::receiveMsg(const std::string& data, const std::string& remote) {
   // Get the header information
   uint8_t  msg_type =      (unsigned char)(data[0]);
   uint16_t seq =          ((unsigned char)(data[1]) << 8) +
@@ -166,7 +171,38 @@ void MarbleVirtualComms::receiveMsg(std::string data, std::string remote) {
   }
 }
 
-void MarbleVirtualComms::resendMissing(std::string data, std::string remote) {
+void MarbleVirtualComms::receiveArtifactScore(const std::string& data) {
+  // Process artifact submission response
+  subt::msgs::ArtifactScore res;
+  if (!res.ParseFromString(data)) {
+    ROS_ERROR("error parsing message");
+  }
+
+  int score = res.score_change();
+  geometry_msgs::Point location;
+  location.x = res.artifact().pose().position().x();
+  location.y = res.artifact().pose().position().y();
+  location.z = res.artifact().pose().position().z();
+
+  ROS_INFO_STREAM("Artifact " << location.x << location.y << location.z <<
+                  " received at base station with score " << score);
+
+  // Report and delete this artifact so we don't try to report again
+  std::map<std::string, subt::msgs::Artifact>::iterator it = artifacts.begin();
+  while (it != artifacts.end()) {
+    if (it->second.DebugString() == res.artifact().DebugString()) {
+      marble_multi_agent::ArtifactScore report;
+      report.id = it->first;
+      report.score = res.score_change();
+      report_pub.publish(report);
+      it = artifacts.erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
+void MarbleVirtualComms::resendMissing(const std::string& data, const std::string& remote) {
   // Get the request information
   uint8_t  msg_type =      (unsigned char)(data[1]);
   uint16_t seq =          ((unsigned char)(data[2]) << 8) +
@@ -257,26 +293,29 @@ void MarbleVirtualComms::missingTimer(const ros::TimerEvent& event) {
       }
     }
   }
+
+  // At the base station keep trying to send artifact reports until we get a response
+  if (id == "Base") {
+    for (auto artifact : artifacts) {
+      // Wait a bit before trying to re-send so we don't miss a good score
+      if (ros::Time::now() > artifact_times[artifact.first] + ros::Duration(timeout / 3)) {
+        std::string serializedData;
+        if (artifact.second.SerializeToString(&serializedData)) {
+          client->SendTo(serializedData, subt::kBaseStationName);
+        } else {
+          ROS_ERROR_STREAM("Error serializing message\n" << artifact.second.DebugString());
+        }
+      }
+    }
+  }
 }
 
 void MarbleVirtualComms::CommsCallback(const std::string& srcAddress, const std::string& dstAddress, const uint32_t dstPort, const std::string& data) {
   // Receive a string from a neighbor
 
-  if (srcAddress == std::string("base_station")) {
-    // Process artifact submission response
-    subt::msgs::ArtifactScore res;
-    if (!res.ParseFromString(data)) {
-      ROS_ERROR("error parsing message");
-    }
-
-    int score = res.score_change();
-    geometry_msgs::Point location;
-    location.x = res.artifact().pose().position().x();
-    location.y = res.artifact().pose().position().y();
-    location.z = res.artifact().pose().position().z();
-
-    ROS_INFO_STREAM("Artifact " << location.x << location.y << location.z <<
-                    " received at base station with score " << score);
+  if (srcAddress == subt::kBaseStationName) {
+    if (id == "Base")
+      receiveArtifactScore(data);
   } else {
     // Make sure this peer exists, and add if it doesn't
     if (peers.find(srcAddress) == peers.end())
@@ -340,6 +379,65 @@ bool MarbleVirtualComms::createPeer(std::string remote) {
   peers.insert(std::make_pair(remote, peer));
 
   return true;
+}
+
+void MarbleVirtualComms::reportCallback(const marble_artifact_detection_msgs::ArtifactConstPtr& msg) {
+  // Multi-agent may keep trying to send so ignore if we're still working on it
+  if (artifacts.find(msg->artifact_id) == artifacts.end()) {
+    // Get the pose and artifact type
+    ignition::msgs::Pose pose;
+    pose.mutable_position()->set_x(msg->position.x);
+    pose.mutable_position()->set_y(msg->position.y);
+    pose.mutable_position()->set_z(msg->position.z);
+
+    uint32_t artifact_type;
+    if (msg->obj_class == "backpack") {
+        artifact_type = static_cast<uint32_t>(subt::ArtifactType::TYPE_BACKPACK);
+    } else if (msg->obj_class == "duct") {
+        artifact_type = static_cast<uint32_t>(subt::ArtifactType::TYPE_DUCT);
+    } else if (msg->obj_class == "drill") {
+        artifact_type = static_cast<uint32_t>(subt::ArtifactType::TYPE_DRILL);
+    } else if (msg->obj_class == "electrical_box") {
+        artifact_type = static_cast<uint32_t>(subt::ArtifactType::TYPE_ELECTRICAL_BOX);
+    } else if (msg->obj_class == "extinguisher") {
+        artifact_type = static_cast<uint32_t>(subt::ArtifactType::TYPE_EXTINGUISHER);
+    } else if (msg->obj_class == "cellphone") {
+        artifact_type = static_cast<uint32_t>(subt::ArtifactType::TYPE_PHONE);
+    } else if (msg->obj_class == "radio") {
+        artifact_type = static_cast<uint32_t>(subt::ArtifactType::TYPE_RADIO);
+    } else if ((msg->obj_class == "person") || (msg->obj_class == "survivor")) {
+        artifact_type = static_cast<uint32_t>(subt::ArtifactType::TYPE_RESCUE_RANDY);
+    } else if (msg->obj_class == "toolbox") {
+        artifact_type = static_cast<uint32_t>(subt::ArtifactType::TYPE_TOOLBOX);
+    } else if (msg->obj_class == "valve") {
+        artifact_type = static_cast<uint32_t>(subt::ArtifactType::TYPE_VALVE);
+    } else if (msg->obj_class == "vent") {
+        artifact_type = static_cast<uint32_t>(subt::ArtifactType::TYPE_VENT);
+    } else if (msg->obj_class == "gas") {
+        artifact_type = static_cast<uint32_t>(subt::ArtifactType::TYPE_GAS);
+    } else if (msg->obj_class == "helmet") {
+        artifact_type = static_cast<uint32_t>(subt::ArtifactType::TYPE_HELMET);
+    } else if (msg->obj_class == "rope") {
+        artifact_type = static_cast<uint32_t>(subt::ArtifactType::TYPE_ROPE);
+    }
+
+    // Generate subt artifact report
+    subt::msgs::Artifact artifact;
+    artifact.set_type(artifact_type);
+    artifact.mutable_pose()->CopyFrom(pose);
+    // Save the artifact so we can track that we received it
+    artifacts[msg->artifact_id] = artifact;
+
+    // Serialize and send
+    std::string serializedData;
+    if (artifact.SerializeToString(&serializedData)) {
+      // Record the time so we don't try to re-send too soon
+      artifact_times[msg->artifact_id] = ros::Time::now();
+      client->SendTo(serializedData, subt::kBaseStationName);
+    } else {
+      ROS_ERROR_STREAM("Error serializing message\n" << artifact.DebugString());
+    }
+  }
 }
 
 void MarbleVirtualComms::neighborsPrintTimer(const ros::TimerEvent& event) {
