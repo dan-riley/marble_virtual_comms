@@ -36,6 +36,7 @@ catkin_package()
 
 add_library(${PROJECT_NAME} src/MarbleVirtualComms.cpp src/MVCPeer.cpp)
 target_link_libraries(${PROJECT_NAME} ${LINK_LIBS})
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 add_executable(marble_virtual_comms_node src/marble_virtual_comms_node.cpp)
 target_link_libraries(marble_virtual_comms_node ${PROJECT_NAME} ${catkin_LIBRARIES} ignition-msgs${IGN_MSGS_VER}::ignition-msgs${IGN_MSGS_VER})

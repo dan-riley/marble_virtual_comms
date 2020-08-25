@@ -18,4 +18,5 @@
   <build_depend>subt_ign</build_depend>
   <build_depend>subt_communication_broker</build_depend>
   <build_depend>subt_msgs</build_depend>
+  <build_depend>marble_multi_agent</build_depend>
 </package>
