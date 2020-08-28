@@ -3,6 +3,6 @@
   <!-- List of all agents to create comms peer pairs -->
   <arg name="agents" default="Base X1 X2" />
 
-  <node pkg="marble_virtual_comms" type="create_peer_pairs.py" name="create_peer_pairs" args="$(arg agents)" output="screen">
+  <node pkg="marble_virtual_comms" type="create_peers.py" name="create_peers" args="$(arg agents)" output="screen">
   </node>
 </launch>

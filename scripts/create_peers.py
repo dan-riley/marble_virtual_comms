@@ -36,10 +36,15 @@ if __name__ == '__main__':
         print("Node requires at least 2 agent names")
         exit()
 
+    agents = []
+    for arg in sys.argv[1:]:
+        if '__name' not in arg and '__log' not in arg:
+            agents.append(arg)
+
     # Start a connection between each agent in the list given
-    i = 1
-    agent1 = sys.argv[1]
-    for agent2 in sys.argv[i + 1:]:
+    i = 0
+    agent1 = agents[0]
+    for agent2 in agents[i + 1:]:
         CommsRun(agent1, agent2)
         i += 1
 
