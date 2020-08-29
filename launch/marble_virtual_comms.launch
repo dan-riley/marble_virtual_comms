@@ -2,6 +2,8 @@
 <launch>
   <!-- Name of the robot for namespace -->
   <arg name="vehicle" default="Base" />
+  <!-- List of agents other than Base, to create peers -->
+  <arg name="agents" default="X1,X2" />
   <!-- Amount of time until messages expire and are no longer sent/requested -->
   <arg name="timeout" default="3.0" />
   <!-- Duration between checks for missing packets and memory cleanup -->
@@ -11,5 +13,8 @@
     <param name="vehicle" value="$(arg vehicle)" />
     <param name="timeout" value="$(arg timeout)" />
     <param name="timer" value="$(arg timer)" />
+  </node>
+
+  <node pkg="marble_virtual_comms" type="create_peers.py" name="create_peers" args="$(arg vehicle) $(arg agents)" output="screen">
   </node>
 </launch>

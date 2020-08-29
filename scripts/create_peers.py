@@ -30,22 +30,23 @@ class CommsRun(threading.Thread):
 
 
 if __name__ == '__main__':
-    # Run as: python create_peers.py X1 X2 X3 X4
-    # Will create peers X2, X3 and X4 on X1
+    # Run as: python create_peers.py X1 X2,X3,X4 (can also include X1 in the list)
+    # Will create peers Base, X2, X3 and X4 on X1
     if len(sys.argv) < 3:
         print("Node requires at least 2 agent names")
         exit()
 
-    agents = []
+    args = []
     for arg in sys.argv[1:]:
         if '__name' not in arg and '__log' not in arg:
-            agents.append(arg)
+            args.append(arg)
 
-    # Start a connection between each agent in the list given
-    i = 0
-    agent1 = agents[0]
-    for agent2 in agents[i + 1:]:
-        CommsRun(agent1, agent2)
-        i += 1
+    # Start a connection between each agent in the list given, plus Base, excluding self
+    agent1 = args[0]
+    agents = args[1].split(',')
+    agents.append('Base')
+    for agent2 in agents:
+        if agent2 != agent1:
+            CommsRun(agent1, agent2)
 
     rospy.init_node('CommsHandler', anonymous=True)
