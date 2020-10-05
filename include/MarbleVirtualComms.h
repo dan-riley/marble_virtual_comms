@@ -71,6 +71,7 @@ protected:
   std::string id;
   double timeout;
   double timer;
+  int reports_submitted;
   std::unique_ptr<subt::CommsClient> client;
   std::map<std::string, MVCPeer> peers;
   std::map<std::string, subt::msgs::Artifact> artifacts;

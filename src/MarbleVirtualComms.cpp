@@ -38,6 +38,7 @@ MarbleVirtualComms::MarbleVirtualComms(const ros::NodeHandle private_nh_, const 
   if (id == "Base") {
     report_pub = private_nh.advertise<marble_multi_agent::ArtifactScore>("/Base/artifact_score", 100);
     report_sub = private_nh.subscribe("/Base/artifact_report", 100, &MarbleVirtualComms::reportCallback, this);
+    reports_submitted = 0;
   }
 }
 
@@ -184,7 +185,11 @@ void MarbleVirtualComms::receiveArtifactScore(const std::string& data) {
   location.y = res.artifact().pose().position().y();
   location.z = res.artifact().pose().position().z();
 
-  ROS_INFO_STREAM("Artifact " << location.x << location.y << location.z <<
+  if (res.report_id() > reports_submitted) {
+    reports_submitted = res.report_id();
+  }
+
+  ROS_INFO_STREAM("Artifact " << res.report_id() << " " << location.x << location.y << location.z <<
                   " received at base station with score " << score);
 
   // Report and delete this artifact so we don't try to report again
@@ -383,7 +388,8 @@ bool MarbleVirtualComms::createPeer(std::string remote) {
 
 void MarbleVirtualComms::reportCallback(const marble_artifact_detection_msgs::ArtifactConstPtr& msg) {
   // Multi-agent may keep trying to send so ignore if we're still working on it
-  if (artifacts.find(msg->artifact_id) == artifacts.end()) {
+  // TODO remove this check that was temporarily added to keep sim running full hour
+  if ((reports_submitted < 40) && (artifacts.find(msg->artifact_id) == artifacts.end())) {
     // Get the pose and artifact type
     ignition::msgs::Pose pose;
     pose.mutable_position()->set_x(msg->position.x);
