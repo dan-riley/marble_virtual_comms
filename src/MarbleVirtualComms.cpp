@@ -388,7 +388,7 @@ bool MarbleVirtualComms::createPeer(std::string remote) {
 
 void MarbleVirtualComms::reportCallback(const marble_artifact_detection_msgs::ArtifactConstPtr& msg) {
   // Multi-agent may keep trying to send so ignore if we're still working on it
-  // TODO remove this check that was temporarily added to keep sim running full hour
+  // Reduce reports_submitted to prevent exhausting report attempts
   if ((reports_submitted < 40) && (artifacts.find(msg->artifact_id) == artifacts.end())) {
     // Get the pose and artifact type
     ignition::msgs::Pose pose;
