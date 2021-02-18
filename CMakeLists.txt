@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(marble_virtual_comms)
+set(CMAKE_CXX_STANDARD 17)
 
 set(PACKAGE_DEPENDENCIES
   roscpp
@@ -17,13 +18,13 @@ find_package(catkin REQUIRED COMPONENTS ${PACKAGE_DEPENDENCIES})
 
 find_package(Boost REQUIRED)
 
-set(IGN_MSGS_VER 4)
+set(IGN_MSGS_VER 6)
 find_package(ignition-msgs${IGN_MSGS_VER} REQUIRED)
 
 include_directories(
   include
   ${Boost_INCLUDE_DIRS}
-  ${ignition-msgs4_INCLUDE_DIRS}
+  ${ignition-msgs6_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
 
