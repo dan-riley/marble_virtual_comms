@@ -11,10 +11,10 @@
 #include "subt_ign/CommonTypes.hh"
 #include "subt_ign/protobuf/artifact.pb.h"
 #include "marble_artifact_detection_msgs/Artifact.h"
-#include "marble_multi_agent/AgentMsg.h"
-#include "marble_multi_agent/DMReqArray.h"
-#include "marble_multi_agent/DMRespArray.h"
-#include "marble_multi_agent/ArtifactScore.h"
+#include "bobcat/AgentMsg.h"
+#include "bobcat/DMReqArray.h"
+#include "bobcat/DMRespArray.h"
+#include "bobcat/ArtifactScore.h"
 #include "marble_virtual_comms/CreatePeer.h"
 #include "MVCPeer.h"
 
@@ -31,9 +31,9 @@ public:
   virtual ~MarbleVirtualComms();
 
   virtual void CommsCallback(const std::string& srcAddress, const std::string& dstAddress, const uint32_t dstPort, const std::string& data);
-  virtual void maDataCallback(const marble_multi_agent::AgentMsgConstPtr& msg);
-  virtual void dmReqCallback(const marble_multi_agent::DMReqArrayConstPtr& msg, std::string remote);
-  virtual void dmRespCallback(const marble_multi_agent::DMRespArrayConstPtr& msg, std::string remote);
+  virtual void maDataCallback(const bobcat::AgentMsgConstPtr& msg);
+  virtual void dmReqCallback(const bobcat::DMReqArrayConstPtr& msg, std::string remote);
+  virtual void dmRespCallback(const bobcat::DMRespArrayConstPtr& msg, std::string remote);
   virtual void reportCallback(const marble_artifact_detection_msgs::ArtifactConstPtr& msg);
 
   std::string sendpre;

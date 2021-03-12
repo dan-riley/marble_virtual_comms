@@ -8,7 +8,7 @@ set(PACKAGE_DEPENDENCIES
   subt_ign
   subt_communication_broker
   subt_msgs
-  marble_multi_agent
+  bobcat
   marble_artifact_detection_msgs
   marble_mapping
   message_generation

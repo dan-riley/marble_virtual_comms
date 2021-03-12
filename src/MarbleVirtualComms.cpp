@@ -36,7 +36,7 @@ MarbleVirtualComms::MarbleVirtualComms(const ros::NodeHandle private_nh_, const 
   peers.insert(std::make_pair("all", peer));
 
   if (id == "Base") {
-    report_pub = private_nh.advertise<marble_multi_agent::ArtifactScore>("/Base/artifact_score", 100);
+    report_pub = private_nh.advertise<bobcat::ArtifactScore>("/Base/artifact_score", 100);
     report_sub = private_nh.subscribe("/Base/artifact_report", 100, &MarbleVirtualComms::reportCallback, this);
     reports_submitted = 0;
   }
@@ -196,7 +196,7 @@ void MarbleVirtualComms::receiveArtifactScore(const std::string& data) {
   std::map<std::string, subt::msgs::Artifact>::iterator it = artifacts.begin();
   while (it != artifacts.end()) {
     if (it->second.DebugString() == res.artifact().DebugString()) {
-      marble_multi_agent::ArtifactScore report;
+      bobcat::ArtifactScore report;
       report.id = it->first;
       report.score = res.score_change();
       report_pub.publish(report);
@@ -338,33 +338,33 @@ void MarbleVirtualComms::CommsCallback(const std::string& srcAddress, const std:
 }
 
 // Callbacks for local message subscribers
-void MarbleVirtualComms::maDataCallback(const marble_multi_agent::AgentMsgConstPtr& msg) {
+void MarbleVirtualComms::maDataCallback(const bobcat::AgentMsgConstPtr& msg) {
   sendMsg(msg, 0, "all");
 }
 
-void MarbleVirtualComms::dmReqCallback(const marble_multi_agent::DMReqArrayConstPtr& msg, std::string remote) {
+void MarbleVirtualComms::dmReqCallback(const bobcat::DMReqArrayConstPtr& msg, std::string remote) {
   sendMsg(msg, 1, remote);
 }
 
-void MarbleVirtualComms::dmRespCallback(const marble_multi_agent::DMRespArrayConstPtr& msg, std::string remote) {
+void MarbleVirtualComms::dmRespCallback(const bobcat::DMRespArrayConstPtr& msg, std::string remote) {
   sendMsg(msg, 2, remote);
 }
 
 // Publishers for local messages after receiving from a peer
 void MarbleVirtualComms::publishStreamMAData(ros::serialization::IStream stream, ros::Publisher pub) {
-  marble_multi_agent::AgentMsg msg;
+  bobcat::AgentMsg msg;
   ros::serialization::deserialize(stream, msg);
   pub.publish(msg);
 }
 
 void MarbleVirtualComms::publishStreamDMReq(ros::serialization::IStream stream, ros::Publisher pub) {
-  marble_multi_agent::DMReqArray msg;
+  bobcat::DMReqArray msg;
   ros::serialization::deserialize(stream, msg);
   pub.publish(msg);
 }
 
 void MarbleVirtualComms::publishStreamDMResp(ros::serialization::IStream stream, ros::Publisher pub) {
-  marble_multi_agent::DMRespArray msg;
+  bobcat::DMRespArray msg;
   ros::serialization::deserialize(stream, msg);
   pub.publish(msg);
 }

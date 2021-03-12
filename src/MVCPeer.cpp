@@ -47,22 +47,22 @@ void MVCPeer::init(std::string name_, MarbleVirtualComms& parent_) {
 
   if (name == "all") {
     // "All" only subscribes to broadcast topics, and doesn't publish locally
-    topics[0].sub = pnh.subscribe<marble_multi_agent::AgentMsg>(parent->sendpre + "ma_data", 100, &MarbleVirtualComms::maDataCallback, parent);
+    topics[0].sub = pnh.subscribe<bobcat::AgentMsg>(parent->sendpre + "ma_data", 100, &MarbleVirtualComms::maDataCallback, parent);
   } else {
     // Add publishers and subscribers for each topic
     std::string sendpre = parent->sendpre + name;
     std::string recvpre = parent->recvpre + name;
 
     // Create the ma_data publisher
-    topics[0].pub = pnh.advertise<marble_multi_agent::AgentMsg>(recvpre + "/ma_data", 100);
+    topics[0].pub = pnh.advertise<bobcat::AgentMsg>(recvpre + "/ma_data", 100);
 
    // Create pair for DM Requests
-    topics[1].sub = pnh.subscribe<marble_multi_agent::DMReqArray>(sendpre + "/dm_request", 100, boost::bind(&MarbleVirtualComms::dmReqCallback, parent, _1, name));
-    topics[1].pub = pnh.advertise<marble_multi_agent::DMReqArray>(recvpre + "/dm_request", 100);
+    topics[1].sub = pnh.subscribe<bobcat::DMReqArray>(sendpre + "/dm_request", 100, boost::bind(&MarbleVirtualComms::dmReqCallback, parent, _1, name));
+    topics[1].pub = pnh.advertise<bobcat::DMReqArray>(recvpre + "/dm_request", 100);
 
     // Create pair for DM Responses
-    topics[2].sub = pnh.subscribe<marble_multi_agent::DMRespArray>(sendpre + "/dm_response", 100, boost::bind(&MarbleVirtualComms::dmRespCallback, parent, _1, name));
-    topics[2].pub = pnh.advertise<marble_multi_agent::DMRespArray>(recvpre + "/dm_response", 100);
+    topics[2].sub = pnh.subscribe<bobcat::DMRespArray>(sendpre + "/dm_response", 100, boost::bind(&MarbleVirtualComms::dmRespCallback, parent, _1, name));
+    topics[2].pub = pnh.advertise<bobcat::DMRespArray>(recvpre + "/dm_response", 100);
   }
 }
 
